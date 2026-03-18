@@ -9,9 +9,13 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.get('/', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'verificador_estudiantes.html'));
+});
+
 // ── Carga y parsea el Excel ──────────────────────────────────────────────────
 function cargarEstudiantes() {
-  const wb   = xlsx.readFile(path.join(__dirname, 'prueba_1.xlsx'));
+  const wb   = xlsx.readFile(path.join(__dirname, 'prueba 1.xlsx'));
   const ws   = wb.Sheets[wb.SheetNames[0]];
   const rows = xlsx.utils.sheet_to_json(ws, { header: 1, defval: '' });
 
