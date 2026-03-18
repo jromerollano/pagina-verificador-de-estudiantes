@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verificación de Estudiantes</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --bg-secondary: #f5f5f4;
+      --bg-info: #e6f1fb;
+      --bg-success: #eaf3de;
+      --bg-danger: #fcebeb;
+      --text-primary: #1a1a18;
+      --text-secondary: #5f5e5a;
+      --text-tertiary: #888780;
+      --text-info: #185fa5;
+      --text-success: #3b6d11;
+      --text-danger: #a32d2d;
+      --border: rgba(0,0,0,0.12);
+      --border-secondary: rgba(0,0,0,0.22);
+      --border-info: rgba(24,95,165,0.35);
+      --border-success: rgba(59,109,17,0.3);
+      --border-danger: rgba(163,45,45,0.3);
+      --radius-md: 8px;
+      --radius-lg: 12px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c1c1a;
+        --bg-secondary: #242422;
+        --bg-info: #042c53;
+        --bg-success: #173404;
+        --bg-danger: #501313;
+        --text-primary: #f0ede8;
+        --text-secondary: #b4b2a9;
+        --text-tertiary: #888780;
+        --text-info: #85b7eb;
+        --text-success: #97c459;
+        --text-danger: #f09595;
+        --border: rgba(255,255,255,0.1);
+        --border-secondary: rgba(255,255,255,0.2);
+        --border-info: rgba(133,183,235,0.3);
+        --border-success: rgba(151,196,89,0.3);
+        --border-danger: rgba(240,149,149,0.3);
+      }
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 3rem 1rem;
+    }
+
+    .wrap { width: 100%; max-width: 520px; }
+
+    .header { text-align: center; margin-bottom: 2rem; }
+    .logo {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--bg-info);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1rem;
+    }
+    .logo svg { width: 26px; height: 26px; stroke: var(--text-info); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .header h1 { font-size: 20px; font-weight: 600; color: var(--text-primary); }
+    .header p { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
+
+    .card {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+    }
+
+    label { font-size: 13px; font-weight: 500; color: var(--text-secondary); display: block; margin-bottom: 6px; letter-spacing: 0.02em; }
+
+    .input-row { display: flex; gap: 8px; }
+    .input-row input {
+      flex: 1; height: 44px;
+      border-radius: var(--radius-md);
+      border: 0.5px solid var(--border-secondary);
+      padding: 0 14px;
+      font-size: 15px;
+      font-family: 'Courier New', monospace;
+      color: var(--text-primary);
+      background: var(--bg-secondary);
+    }
+    .input-row input:focus { outline: none; border-color: var(--border-info); box-shadow: 0 0 0 3px rgba(24,95,165,0.1); }
+    .input-row input::placeholder { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: var(--text-tertiary); font-size: 14px; }
+
+    .btn {
+      height: 44px; padding: 0 20px;
+      border-radius: var(--radius-md);
+      border: 0.5px solid var(--border-info);
+      background: var(--bg-info);
+      font-size: 14px; font-weight: 500;
+      color: var(--text-info);
+      cursor: pointer; white-space: nowrap;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn:active { transform: scale(0.97); }
+
+    .loading {
+      display: none; align-items: center; gap: 8px;
+      margin-top: 1rem; color: var(--text-tertiary); font-size: 13px;
+    }
+    .loading.visible { display: flex; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-tertiary); animation: pulse 1s ease-in-out infinite; }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+    .result {
+      display: none; margin-top: 1.25rem;
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+    }
+    .result.visible { display: flex; align-items: flex-start; gap: 12px; }
+    .result.success { background: var(--bg-success); border: 0.5px solid var(--border-success); }
+    .result.danger  { background: var(--bg-danger);  border: 0.5px solid var(--border-danger); }
+
+    .result-icon { width: 20px; height: 20px; flex-shrink: 0; margin-top: 2px; }
+    .result-title { font-size: 14px; font-weight: 600; }
+    .result.success .result-title { color: var(--text-success); }
+    .result.danger  .result-title { color: var(--text-danger); }
+    .result-detail { font-size: 13px; color: var(--text-secondary); margin-top: 5px; line-height: 1.55; }
+
+    .student-info { margin-top: 10px; display: flex; flex-direction: column; gap: 5px; }
+    .info-row { display: flex; justify-content: space-between; font-size: 12.5px; }
+    .info-row span:first-child { color: var(--text-tertiary); }
+    .info-row span:last-child  { color: var(--text-secondary); font-weight: 500; }
+
+    .divider { height: 0.5px; background: var(--border); margin: 1.75rem 0; }
+
+    .hint { font-size: 12px; color: var(--text-tertiary); text-align: center; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; justify-content: center; }
+    .chip {
+      font-size: 11px; padding: 3px 10px;
+      border-radius: 100px;
+      background: var(--bg); border: 0.5px solid var(--border);
+      color: var(--text-secondary); cursor: pointer;
+      font-family: 'Courier New', monospace;
+      transition: background 0.12s, color 0.12s, border-color 0.12s;
+    }
+    .chip:hover { background: var(--bg-info); color: var(--text-info); border-color: var(--border-info); }
+
+    .footer { text-align: center; margin-top: 2rem; font-size: 11px; color: var(--text-tertiary); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div class="logo">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
+    </div>
+    <h1>Verificación de Estudiantes</h1>
+    <p>Consulta si una persona está registrada en el sistema académico</p>
+  </div>
+
+  <div class="card">
+    <label for="cedula">Número de cédula</label>
+    <div class="input-row">
+      <input type="text" id="cedula" placeholder="Ej: 1023456789" maxlength="12" inputmode="numeric" />
+      <button class="btn" onclick="consultar()">Consultar</button>
+    </div>
+
+    <div class="loading" id="loading">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <span>Verificando en el sistema...</span>
+    </div>
+
+    <div class="result" id="result">
+      <div class="result-icon" id="result-icon"></div>
+      <div style="flex:1">
+        <div class="result-title" id="result-title"></div>
+        <div id="result-extra"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="hint">
+    <p>Prueba con estas cédulas de ejemplo registradas:</p>
+    <div class="chips">
+      <span class="chip" onclick="probar('12345667')">12345667</span>
+      <span class="chip" onclick="probar('12345678')">12345678</span>
+      <span class="chip" onclick="probar('125456789')">125456789</span>
+    </div>
+  </div>
+
+  <div class="footer">Sistema de Verificación Académica &mdash; Backend Node.js + Excel vía API REST</div>
+
+</div>
+
+<script>
+  // URL base de la API — en producción usa la URL de Render; en local usa localhost
+  const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3000'
+    : '';  // mismo origen cuando el HTML lo sirve Express desde /public
+
+  const iconCheck = `<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+    <circle cx="10" cy="10" r="9" stroke="var(--text-success)" stroke-width="1.5"/>
+    <path d="M6.5 10.5l2.5 2.5 4.5-5" stroke="var(--text-success)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+
+  const iconX = `<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+    <circle cx="10" cy="10" r="9" stroke="var(--text-danger)" stroke-width="1.5"/>
+    <path d="M7 7l6 6M13 7l-6 6" stroke="var(--text-danger)" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>`;
+
+  function probar(val) {
+    document.getElementById('cedula').value = val;
+    consultar();
+  }
+
+  async function consultar() {
+    const input     = document.getElementById('cedula');
+    const cedula    = input.value.trim().replace(/\s/g, '');
+    const resultEl  = document.getElementById('result');
+    const loadingEl = document.getElementById('loading');
+
+    if (!cedula) { input.focus(); return; }
+
+    resultEl.className  = 'result';
+    loadingEl.className = 'loading visible';
+
+    try {
+      const res  = await fetch(`${API_BASE}/api/verificar/${cedula}`);
+      const data = await res.json();
+
+      loadingEl.className = 'loading';
+
+      if (data.encontrado) {
+        resultEl.className = 'result visible success';
+        document.getElementById('result-icon').innerHTML  = iconCheck;
+        document.getElementById('result-title').textContent = 'Esta persona sí es estudiante.';
+        document.getElementById('result-extra').innerHTML = `
+          <div class="student-info">
+            <div class="info-row"><span>Nombre completo</span><span>${data.nombre}</span></div>
+            <div class="info-row"><span>Programa</span><span>${data.programa}</span></div>
+            <div class="info-row"><span>Semestre</span><span>${data.semestre}</span></div>
+            <div class="info-row"><span>Jornada</span><span>${data.jornada}</span></div>
+            <div class="info-row"><span>Estado</span><span>${data.estado}</span></div>
+            <div class="info-row"><span>Cédula</span><span>${data.cedula}</span></div>
+          </div>`;
+      } else {
+        resultEl.className = 'result visible danger';
+        document.getElementById('result-icon').innerHTML  = iconX;
+        document.getElementById('result-title').textContent = 'Esta persona no está registrada como estudiante.';
+        document.getElementById('result-extra').innerHTML = `
+          <div class="result-detail">
+            La cédula <strong>${data.cedula}</strong> no se encontró en el sistema académico.
+            Verifique el número ingresado o contacte a la institución.
+          </div>`;
+      }
+    } catch (err) {
+      loadingEl.className = 'loading';
+      resultEl.className  = 'result visible danger';
+      document.getElementById('result-icon').innerHTML   = iconX;
+      document.getElementById('result-title').textContent = 'Error al conectar con el servidor.';
+      document.getElementById('result-extra').innerHTML  = `
+        <div class="result-detail">No se pudo contactar la API. Verifica que el servidor esté activo.</div>`;
+    }
+  }
+
+  document.getElementById('cedula').addEventListener('keydown', e => {
+    if (e.key === 'Enter') consultar();
+  });
+</script>
+</body>
+</html>
