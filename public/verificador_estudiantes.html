@@ -307,7 +307,7 @@
     }
     .sc-field:nth-child(odd){ padding-right:16px; border-right:1px solid var(--gray-100); }
     .sc-field:nth-child(even){ padding-left:16px; }
-    .sc-field:nth-last-child(-n+2){ border-bottom:none; }
+    .sc-field:last-child{ border-bottom:none; border-right:none; padding-right:0; }
     .sc-field-label{ font-size:10px; font-weight:700; color:var(--gray-300); text-transform:uppercase; letter-spacing:0.07em; margin-bottom:3px; }
     .sc-field-value{ font-size:13px; font-weight:700; color:var(--gray-900); font-family:'JetBrains Mono',monospace; }
 
@@ -506,10 +506,6 @@
           <div class="sc-field-label">Semestre</div>
           <div class="sc-field-value" id="sc-semestre">—</div>
         </div>
-        <div class="sc-field">
-          <div class="sc-field-label">Jornada</div>
-          <div class="sc-field-value" id="sc-jornada">—</div>
-        </div>
       </div>
     </div>
   </div>
@@ -582,7 +578,6 @@
         document.getElementById('sc-program').textContent = data.programa;
         document.getElementById('sc-cedula').textContent  = data.cedula;
         document.getElementById('sc-semestre').textContent= data.semestre;
-        document.getElementById('sc-jornada').textContent = data.jornada;
         document.getElementById('sc-estado').innerHTML    =
           `<span class="sc-status-badge"><span class="sc-status-dot"></span>${data.estado}</span>`;
         cardEl.className = 'student-card visible';
