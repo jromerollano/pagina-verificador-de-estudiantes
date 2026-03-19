@@ -350,6 +350,47 @@
 
     @keyframes fadeDown{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
     @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+    /* ── MÓVIL ── */
+    @media (max-width: 600px) {
+      .topbar{ display:none; }
+
+      .site-header{ padding:0 1rem; height:60px; }
+      .brand-logo img{ width:40px; height:40px; }
+      .brand-name{ font-size:13px; }
+      .brand-sub{ font-size:10px; }
+      .header-tagline{ font-size:11px; }
+
+      .hero{ padding:2.5rem 1.25rem 4rem; }
+      .hero h1{ font-size:24px; }
+      .hero p{ font-size:13px; }
+      .hero-stats{ display:flex; width:100%; }
+      .stat{ flex:1; padding:8px 10px; }
+      .stat-num{ font-size:17px; }
+
+      main{ padding:0 0.75rem 3rem; }
+
+      .search-card{ padding:1.5rem 1.25rem; border-radius:16px; }
+      .search-card-header{ margin-bottom:1.25rem; }
+      .search-card-title{ font-size:15px; }
+
+      /* Input y botón apilados en móvil */
+      .input-row{ flex-direction:column; gap:10px; }
+      .input-row input{ height:50px; font-size:15px; }
+      .btn{ height:50px; width:100%; justify-content:center; font-size:14px; }
+
+      .sc-top{ padding:1.25rem; }
+      .sc-name{ font-size:16px; }
+      .sc-bottom{ padding:1.25rem; }
+      .sc-grid{ grid-template-columns:1fr; }
+      .sc-field:nth-child(odd){ padding-right:0; border-right:none; }
+      .sc-field:nth-child(even){ padding-left:0; }
+      .sc-field:nth-last-child(-n+2){ border-bottom:1px solid var(--gray-100); }
+      .sc-field:last-child{ border-bottom:none; }
+
+      footer{ padding:1.25rem 1rem; flex-direction:column; align-items:flex-start; gap:4px; }
+      .footer-right{ display:none; }
+    }
   </style>
 </head>
 <body>
