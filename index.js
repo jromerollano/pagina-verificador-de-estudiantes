@@ -34,7 +34,7 @@ function cargarEstudiantes() {
       programa: capitalize(programa),
       semestre: row[3] ? String(row[3]).trim() : 'N/A',
       jornada:  row[4] ? String(row[4]).trim() : 'N/A',
-      estado:   row[5] ? String(row[5]).trim() : 'Activo',
+      estado:   row[5] ? (String(row[5]).trim().toLowerCase() === 'activo' ? 'Graduado' : String(row[5]).trim()) : 'Graduado',
     };
   }
 
