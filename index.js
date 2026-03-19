@@ -58,6 +58,12 @@ app.get('/api/verificar/:cedula', (req, res) => {
   res.json({ encontrado: false, cedula });
 });
 
+// ── Lista de cédulas para los chips ──────────────────────────────────────────
+app.get('/api/cedulas', (_req, res) => {
+  const db = cargarEstudiantes();
+  res.json(Object.keys(db));
+});
+
 // ── Healthcheck para Render ───────────────────────────────────────────────────
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
