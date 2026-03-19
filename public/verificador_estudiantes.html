@@ -506,6 +506,10 @@
           <div class="sc-field-label">Semestre</div>
           <div class="sc-field-value" id="sc-semestre">—</div>
         </div>
+        <div class="sc-field">
+          <div class="sc-field-label">Jornada</div>
+          <div class="sc-field-value" id="sc-jornada">—</div>
+        </div>
       </div>
     </div>
   </div>
@@ -580,7 +584,7 @@
         document.getElementById('sc-semestre').textContent= data.semestre;
         document.getElementById('sc-jornada').textContent = data.jornada;
         document.getElementById('sc-estado').innerHTML    =
-          `<span class="sc-status-badge"><span class="sc-status-dot"></span>Graduado</span>`;
+          `<span class="sc-status-badge"><span class="sc-status-dot"></span>${data.estado}</span>`;
         cardEl.className = 'student-card visible';
       } else {
         document.getElementById('danger-text').innerHTML =
