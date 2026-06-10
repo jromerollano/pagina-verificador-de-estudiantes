@@ -889,14 +889,34 @@
 
       const body = document.createElement('div');
       body.className = 'id-body';
+
+      // 1. Lógica para procesar el Estado Académico con copitas si está graduado
+      let estadoTexto = estudiante.estado || 'N/A';
+      if (estadoTexto.toLowerCase().includes('graduado')) {
+        estadoTexto = `${estadoTexto} 🥂🎓`;
+      }
+
+      // 2. Lógica para procesar las Estrellas Doradas dinámicas según el nivel de Inglés
+      let nivelInglesTexto = estudiante.nivelIngles || 'N/A';
+      if (nivelInglesTexto !== 'N/A') {
+        const nivel = nivelInglesTexto.toUpperCase().trim();
+        let estrellas = '';
+        if (nivel.includes('A1')) estrellas = '⭐';
+        else if (nivel.includes('A2')) estrellas = '⭐⭐';
+        else if (nivel.includes('B1')) estrellas = '⭐⭐⭐';
+        else if (nivel.includes('B2')) estrellas = '⭐⭐⭐⭐';
+        else if (nivel.includes('C1') || nivel.includes('C2')) estrellas = '⭐⭐⭐⭐⭐';
+        else estrellas = '⭐'; // Caso base por seguridad
+        
+        nivelInglesTexto = `${nivelInglesTexto} ${estrellas}`;
+      }
       
-      // Se agregan las nuevas casillas con el layout balanceado
       body.append(
         crearValor('Cedula', estudiante.cedula || data.cedula, { mono: true }),
-        crearValor('Nivel de ingles', estudiante.nivelIngles),
+        crearValor('Nivel de ingles', nivelInglesTexto),
         crearValor('ETDH de Conocimientos Academicos', estudiante.etdh, { wide: true }),
         crearValor('Programa', estudiante.programa, { wide: true }),
-        crearValor('Estado academico', estudiante.estado),
+        crearValor('Estado academico', estadoTexto),
         crearValor('Semestre', estudiante.semestre),
         crearValor('Jornada', estudiante.jornada)
       );
