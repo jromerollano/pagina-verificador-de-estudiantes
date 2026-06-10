@@ -815,7 +815,9 @@
         programa: data.programa,
         semestre: data.semestre,
         jornada: data.jornada,
-        estado: data.estado
+        estado: data.estado,
+        nivelIngles: data.nivelIngles,
+        etdh: data.etdh
       };
     }
 
@@ -887,10 +889,14 @@
 
       const body = document.createElement('div');
       body.className = 'id-body';
+      
+      // Se agregan las nuevas casillas con el layout balanceado
       body.append(
         crearValor('Cedula', estudiante.cedula || data.cedula, { mono: true }),
-        crearValor('Estado academico', estudiante.estado),
+        crearValor('Nivel de ingles', estudiante.nivelIngles),
+        crearValor('ETDH de Conocimientos Academicos', estudiante.etdh, { wide: true }),
         crearValor('Programa', estudiante.programa, { wide: true }),
+        crearValor('Estado academico', estudiante.estado),
         crearValor('Semestre', estudiante.semestre),
         crearValor('Jornada', estudiante.jornada)
       );

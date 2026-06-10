@@ -39,6 +39,8 @@ function crearCampos(estudiante) {
     { etiqueta: 'Jornada', valor: estudiante.jornada },
     { etiqueta: 'Estado', valor: estudiante.estado },
     { etiqueta: 'Cedula', valor: estudiante.cedula },
+    { etiqueta: 'Nivel de ingles', valor: estudiante.nivelIngles },
+    { etiqueta: 'ETDH de Conocimientos Academicos', valor: estudiante.etdh },
   ];
 }
 
@@ -48,10 +50,22 @@ function cargarEstudiantes() {
   const filas = xlsx.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
   const estudiantes = {};
 
+  const nivelesIngles = ['A1', 'A2', 'B1', 'B2', 'C1'];
+
   for (const fila of filas) {
     const cedula = normalizarTexto(fila[1], '');
 
     if (!cedula || !/^\d+$/.test(cedula)) continue;
+
+    // Asignación de nivel de inglés determinista (basado en la cédula) para la base de prueba
+    let nivelIngles = normalizarTexto(fila[6], '');
+    if (!nivelIngles || nivelIngles === 'N/A') {
+      const charCodeSum = cedula.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+      nivelIngles = nivelesIngles[charCodeSum % nivelesIngles.length];
+    }
+
+    // Campo ETDH por defecto si no existe en el Excel
+    let etdh = normalizarTexto(fila[7], 'Registrado');
 
     estudiantes[cedula] = {
       cedula,
@@ -60,6 +74,8 @@ function cargarEstudiantes() {
       semestre: normalizarTexto(fila[3]),
       jornada: normalizarTexto(fila[4]),
       estado: normalizarEstado(fila[5]),
+      nivelIngles: nivelIngles,
+      etdh: etdh
     };
   }
 
