@@ -522,9 +522,11 @@
     .id-subtitle {
       margin: 8px 0 0;
       color: var(--muted-strong);
-      font-size: 14px;
+      font-size: 15px;
+      font-weight: 700;
       line-height: 1.5;
       overflow-wrap: anywhere;
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
     }
 
     .status-badge {
@@ -882,7 +884,8 @@
 
       const subtitle = document.createElement('p');
       subtitle.className = 'id-subtitle';
-      subtitle.textContent = estudiante.programa || 'American Business School';
+      // Asignamos la Cédula aquí en vez del programa
+      subtitle.textContent = estudiante.cedula || data.cedula;
 
       identity.append(kicker, title, subtitle);
       header.append(avatar, identity, crearBadgeEstado(estudiante.estado));
@@ -906,17 +909,17 @@
         else if (nivel.includes('B1')) estrellas = '⭐⭐⭐';
         else if (nivel.includes('B2')) estrellas = '⭐⭐⭐⭐';
         else if (nivel.includes('C1') || nivel.includes('C2')) estrellas = '⭐⭐⭐⭐⭐';
-        else estrellas = '⭐'; // Caso base por seguridad
+        else estrellas = '⭐';
         
         nivelInglesTexto = `${nivelInglesTexto} ${estrellas}`;
       }
       
+      // Eliminamos cédula e insertamos los campos con Nivel de inglés primero
       body.append(
-        crearValor('Cedula', estudiante.cedula || data.cedula, { mono: true }),
         crearValor('Nivel de ingles', nivelInglesTexto),
+        crearValor('Estado academico', estadoTexto),
         crearValor('ETDH de Conocimientos Academicos', estudiante.etdh, { wide: true }),
         crearValor('Programa', estudiante.programa, { wide: true }),
-        crearValor('Estado academico', estadoTexto),
         crearValor('Semestre', estudiante.semestre),
         crearValor('Jornada', estudiante.jornada)
       );
