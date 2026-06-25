@@ -887,18 +887,14 @@
       subtitle.textContent = estudiante.cedula || data.cedula;
 
       identity.append(kicker, title, subtitle);
+      
+      // La etiqueta de estado (ej: Graduado) se mantiene en la esquina superior derecha
       header.append(avatar, identity, crearBadgeEstado(estudiante.estado));
 
       const body = document.createElement('div');
       body.className = 'id-body';
 
-      // 1. Lógica para procesar el Estado Académico (ahora Diplomados) con copitas si está graduado
-      let estadoTexto = estudiante.estado || 'N/A';
-      if (estadoTexto.toLowerCase().includes('graduado')) {
-        estadoTexto = `${estadoTexto} 🥂🎓`;
-      }
-
-      // 2. Lógica para procesar las Estrellas Doradas dinámicas según el nivel de Inglés
+      // Lógica para procesar las Estrellas Doradas dinámicas según el nivel de Inglés
       let nivelInglesTexto = estudiante.nivelIngles || 'N/A';
       if (nivelInglesTexto !== 'N/A') {
         const nivel = nivelInglesTexto.toUpperCase().trim();
@@ -913,16 +909,15 @@
         nivelInglesTexto = `${nivelInglesTexto} ${estrellas}`;
       }
       
-      // 3. Lógica para consolidar el Técnico y el Semestre
+      // Consolidar el Técnico y el Semestre
       const estudiosTecnicosTexto = `${estudiante.programa} - Semestre ${estudiante.semestre}`;
       
-      // Insertamos TODOS los campos solicitados
+      // Insertamos los campos con la nueva distribución
       body.append(
         crearValor('Nivel de ingles', nivelInglesTexto),
-        crearValor('Diplomados', estadoTexto),
+        crearValor('Diplomados', 'Diplomado en TICS'), // Campo fijo como solicitaste
         crearValor('Programas en ETDH', estudiante.etdh, { wide: true }),
         crearValor('Estudios tecnicos', estudiosTecnicosTexto, { wide: true }),
-        crearValor('Programa', estudiante.programa, { wide: true }),
         crearValor('Expertos', estudiante.semestre, { wide: true })
       );
 
