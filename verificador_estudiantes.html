@@ -913,15 +913,17 @@
         nivelInglesTexto = `${nivelInglesTexto} ${estrellas}`;
       }
       
-      // 3. Lógica para consolidar el Técnico y el Semestre
+      // 3. Lógica para consolidar el Técnico y el Semestre (reemplazando ETDH)
       const estudiosTecnicosTexto = `${estudiante.programa} - Semestre ${estudiante.semestre}`;
       
-      // Insertamos los 4 campos finales
+      // Insertamos TODOS los campos solicitados
       body.append(
         crearValor('Nivel de ingles', nivelInglesTexto),
         crearValor('Estado academico', estadoTexto),
         crearValor('Estudios tecnicos', estudiosTecnicosTexto, { wide: true }),
-        crearValor('Jornada', estudiante.jornada, { wide: true })
+        crearValor('Programa', estudiante.programa, { wide: true }),
+        crearValor('Semestre', estudiante.semestre),
+        crearValor('Jornada', estudiante.jornada)
       );
 
       const barcode = document.createElement('div');
