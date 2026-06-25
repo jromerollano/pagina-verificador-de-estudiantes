@@ -884,7 +884,6 @@
 
       const subtitle = document.createElement('p');
       subtitle.className = 'id-subtitle';
-      // Asignamos la Cédula aquí en vez del programa
       subtitle.textContent = estudiante.cedula || data.cedula;
 
       identity.append(kicker, title, subtitle);
@@ -914,14 +913,15 @@
         nivelInglesTexto = `${nivelInglesTexto} ${estrellas}`;
       }
       
-      // Eliminamos cédula e insertamos los campos con Nivel de inglés primero
+      // 3. Lógica para consolidar el Técnico y el Semestre
+      const estudiosTecnicosTexto = `${estudiante.programa} - Semestre ${estudiante.semestre}`;
+      
+      // Insertamos los 4 campos finales
       body.append(
         crearValor('Nivel de ingles', nivelInglesTexto),
         crearValor('Estado academico', estadoTexto),
-        crearValor('ETDH de Conocimientos Academicos', estudiante.etdh, { wide: true }),
-        crearValor('Programa', estudiante.programa, { wide: true }),
-        crearValor('Semestre', estudiante.semestre),
-        crearValor('Jornada', estudiante.jornada)
+        crearValor('Estudios tecnicos', estudiosTecnicosTexto, { wide: true }),
+        crearValor('Jornada', estudiante.jornada, { wide: true })
       );
 
       const barcode = document.createElement('div');
