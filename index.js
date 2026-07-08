@@ -1,12 +1,13 @@
 const express = require('express');
-const fs = require('fs');
+const xlsx = require('xlsx');
 const path = require('path');
 const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-// Apuntamos a la nueva base de datos CSV
-const CSV_FILE = path.join(__dirname, 'A.csv');
+
+// PON AQUÍ EL NOMBRE EXACTO DE TU ARCHIVO (ej: A.xlsx o A.csv)
+const DATA_FILE = path.join(__dirname, 'A.csv'); 
 const HTML_FILE = path.join(__dirname, 'verificador_estudiantes.html');
 
 app.use(cors());
@@ -30,24 +31,20 @@ function capitalizar(valor) {
 function cargarEstudiantes() {
   const estudiantes = {};
   try {
-    // Leemos el CSV (latin1 para no dañar las tildes y ñ del documento original)
-    const fileContent = fs.readFileSync(CSV_FILE, 'latin1');
-    const lineas = fileContent.split(/\r?\n/);
-    
-    // Ignoramos la primera fila (los encabezados)
-    for (let i = 1; i < lineas.length; i++) {
-      const linea = lineas[i];
-      if (!linea.trim()) continue;
-      
-      // Separamos por punto y coma (formato del CSV)
-      const columnas = linea.split(';');
-      
-      const cedula = normalizarTexto(columnas[1], ''); // Columna 1: Documento
+    // La librería xlsx lee de forma segura tanto Excel como CSV
+    const workbook = xlsx.readFile(DATA_FILE);
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const filas = xlsx.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+
+    // Empezamos desde la fila 1 para saltar los encabezados
+    for (let i = 1; i < filas.length; i++) {
+      const fila = filas[i];
+      const cedula = normalizarTexto(fila[1], ''); // Columna 1: Documento
+
       if (!cedula || !/^\d+$/.test(cedula)) continue;
 
-      let nivelIngles = normalizarTexto(columnas[23], 'N/A'); // Columna 23: Nivel de Inglés Certificado
+      let nivelIngles = normalizarTexto(fila[23], 'N/A'); // Columna 23: Nivel de Inglés
       if (nivelIngles === 'N/A' || nivelIngles === '') {
-        // Asignación de reserva en caso de que esté vacío
         const niveles = ['A1', 'A2', 'B1', 'B2', 'C1'];
         const charCodeSum = cedula.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
         nivelIngles = niveles[charCodeSum % niveles.length];
@@ -55,17 +52,17 @@ function cargarEstudiantes() {
 
       estudiantes[cedula] = {
         cedula,
-        nombre: capitalizar(columnas[0]),        // Columna 0: Nombre
-        programa: capitalizar(columnas[2]),      // Columna 2: Programa 1 (Estudios técnicos)
-        diplomado: capitalizar(columnas[16]),    // Columna 16: Diplomado 1
-        experto: capitalizar(columnas[19]),      // Columna 19: Curso (Expertos)
+        nombre: capitalizar(fila[0]),        // Columna 0: Nombre
+        programa: capitalizar(fila[2]),      // Columna 2: Programa 1
+        diplomado: capitalizar(fila[16]),    // Columna 16: Diplomado 1
+        experto: capitalizar(fila[19]),      // Columna 19: Curso
         nivelIngles: nivelIngles,
-        etdh: 'Registrado',                      // Fijo
-        estado: 'Graduado'                       // Fijo para la medalla
+        etdh: 'Registrado',
+        estado: 'Graduado'
       };
     }
   } catch (error) {
-    console.error('Error procesando CSV:', error.message);
+    console.error('Error al leer la base de datos:', error.message);
   }
   return estudiantes;
 }
