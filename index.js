@@ -28,41 +28,68 @@ function capitalizar(valor) {
     .replace(/\p{L}+/gu, palabra => palabra.charAt(0).toLocaleUpperCase('es-CO') + palabra.slice(1));
 }
 
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const cors = require('cors');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Busca cualquier archivo que contenga "p1" en el nombre para mayor flexibilidad
+const archivos = fs.readdirSync(__dirname);
+const archivoP1 = archivos.find(f => f.includes('p1'));
+const DATA_FILE = path.join(__dirname, archivoP1); 
+const HTML_FILE = path.join(__dirname, 'verificador_estudiantes.html');
+
+app.use(cors());
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/', (_req, res) => {
+  res.sendFile(HTML_FILE);
+});
+
+function normalizarTexto(valor, fallback = 'N/A') {
+  const texto = String(valor || '').trim();
+  return texto === '' || texto === 'undefined' ? fallback : texto;
+}
+
+function capitalizar(valor) {
+  return normalizarTexto(valor, '')
+    .toLocaleLowerCase('es-CO')
+    .replace(/\p{L}+/gu, palabra => palabra.charAt(0).toLocaleUpperCase('es-CO') + palabra.slice(1));
+}
+
 function cargarEstudiantes() {
   const estudiantes = {};
   try {
-    // La librería xlsx lee de forma segura tanto Excel como CSV
-    const workbook = xlsx.readFile(DATA_FILE);
-    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const filas = xlsx.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+    const fileContent = fs.readFileSync(DATA_FILE, 'utf-8');
+    const lineas = fileContent.split(/\r?\n/);
 
-    // Empezamos desde la fila 1 para saltar los encabezados
-    for (let i = 1; i < filas.length; i++) {
-      const fila = filas[i];
-      const cedula = normalizarTexto(fila[1], ''); // Columna 1: Documento
-
+    // Iteramos desde la línea 1 para saltar los encabezados
+    for (let i = 1; i < lineas.length; i++) {
+      if (!lineas[i].trim()) continue;
+      
+      // Separamos por coma, que es el formato de tu archivo
+      const cols = lineas[i].split(',');
+      
+      // Columna 1: Cedula
+      const cedula = normalizarTexto(cols[1], ''); 
       if (!cedula || !/^\d+$/.test(cedula)) continue;
 
-      let nivelIngles = normalizarTexto(fila[23], 'N/A'); // Columna 23: Nivel de Inglés
-      if (nivelIngles === 'N/A' || nivelIngles === '') {
-        const niveles = ['A1', 'A2', 'B1', 'B2', 'C1'];
-        const charCodeSum = cedula.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
-        nivelIngles = niveles[charCodeSum % niveles.length];
-      }
-
       estudiantes[cedula] = {
-        cedula,
-        nombre: capitalizar(fila[0]),        // Columna 0: Nombre
-        programa: capitalizar(fila[2]),      // Columna 2: Programa 1
-        diplomado: capitalizar(fila[16]),    // Columna 16: Diplomado 1
-        experto: capitalizar(fila[19]),      // Columna 19: Curso
-        nivelIngles: nivelIngles,
-        etdh: 'Registrado',
-        estado: 'Graduado'
+        cedula: cedula,
+        nombre: capitalizar(cols[0]),              // Columna 0: Nombre
+        programa: capitalizar(cols[2]),            // Columna 2: Programa 1
+        diplomado: 'Diplomado en TICS',            // Fijo
+        etdh: 'Registrado',                        // Fijo
+        experto: normalizarTexto(cols[19], 'N/A'), // Columna 19: Curso
+        nivelIngles: normalizarTexto(cols[23], 'A1'), // Columna 23: Inglés
+        estado: 'Graduado'                         // Fijo para la medalla
       };
     }
   } catch (error) {
-    console.error('Error al leer la base de datos:', error.message);
+    console.error('Error al cargar la base de datos:', error.message);
   }
   return estudiantes;
 }
@@ -76,27 +103,16 @@ app.get('/api/verificar/:cedula', (req, res) => {
     return res.json({
       encontrado: false,
       cedula,
-      mensaje: 'La cedula consultada no se encontro en el sistema academico.',
+      mensaje: 'La cédula consultada no se encuentra en el sistema.',
     });
   }
 
   res.json({
     encontrado: true,
-    cedula,
-    estudiante,
     ...estudiante,
   });
 });
 
-app.get('/api/cedulas', (_req, res) => {
-  const estudiantes = cargarEstudiantes();
-  res.json(Object.keys(estudiantes));
-});
-
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok' });
-});
-
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
+  console.log(`Servidor activo. Leyendo base de datos: ${archivoP1}`);
 });
