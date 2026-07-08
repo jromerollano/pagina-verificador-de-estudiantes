@@ -308,6 +308,46 @@
       }
     }
 
+    .quick-tests {
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .quick-tests[hidden] {
+      display: none;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      min-height: 32px;
+      border: 1px solid var(--line-blue);
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.76);
+      color: var(--blue);
+      cursor: pointer;
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 0 10px;
+      transition: background 160ms ease, border-color 160ms ease, transform 120ms ease;
+    }
+
+    .chip:hover {
+      background: var(--blue-soft);
+      border-color: rgba(11, 74, 143, 0.38);
+      transform: translateY(-1px);
+    }
+
     .institutional-footer {
       width: min(100%, 540px);
       padding-top: 22px;
@@ -703,6 +743,11 @@
             </div>
 
             <div class="status-line" id="statusLine" role="status" aria-live="polite"></div>
+
+            <div class="quick-tests" id="quickTests" hidden>
+              <span>Consultas rapidas</span>
+              <div class="chips" id="chips"></div>
+            </div>
           </section>
         </div>
 
@@ -744,6 +789,8 @@
     const statusLine = document.getElementById('statusLine');
     const emptyState = document.getElementById('emptyState');
     const result = document.getElementById('result');
+    const quickTests = document.getElementById('quickTests');
+    const chips = document.getElementById('chips');
 
     function limpiarCedula(valor) {
       return valor.trim().replace(/\s+/g, '');
@@ -846,7 +893,7 @@
       const body = document.createElement('div');
       body.className = 'id-body';
 
-      // Lógica para procesar las Estrellas Doradas dinámicas según el nivel de Inglés
+      // Estrellas dinámicas para el Nivel de Inglés
       let nivelInglesTexto = estudiante.nivelIngles || 'N/A';
       if (nivelInglesTexto !== 'N/A') {
         const nivel = nivelInglesTexto.toUpperCase().trim();
@@ -861,15 +908,12 @@
         nivelInglesTexto = `${nivelInglesTexto} ${estrellas}`;
       }
       
-      // Consolidar el Técnico y el Semestre
-      const estudiosTecnicosTexto = `${estudiante.programa}`;
-      
-      // Insertamos los campos con la nueva distribución
+      // Insertamos los 5 campos en el body (limpio, sin repetidos)
       body.append(
         crearValor('Nivel de ingles', nivelInglesTexto),
-        crearValor('Diplomados', 'Diplomado en TICS'), // Campo fijo como solicitaste
+        crearValor('Diplomados', estudiante.diplomado),
         crearValor('Programas en ETDH', estudiante.etdh, { wide: true }),
-        crearValor('Estudios tecnicos', estudiosTecnicosTexto, { wide: true }),
+        crearValor('Estudios tecnicos', estudiante.programa, { wide: true }),
         crearValor('Expertos', estudiante.experto, { wide: true })
       );
 
@@ -965,11 +1009,39 @@
       }
     }
 
+    async function cargarCedulas() {
+      try {
+        const response = await fetch(`${API_BASE}/api/cedulas`);
+        const cedulas = await response.json();
+
+        if (!Array.isArray(cedulas) || !cedulas.length) return;
+
+        const fragment = document.createDocumentFragment();
+        cedulas.slice(0, 8).forEach(cedula => {
+          const chip = document.createElement('button');
+          chip.className = 'chip';
+          chip.type = 'button';
+          chip.textContent = cedula;
+          chip.addEventListener('click', () => {
+            input.value = cedula;
+            consultar();
+          });
+          fragment.appendChild(chip);
+        });
+
+        chips.replaceChildren(fragment);
+        quickTests.hidden = false;
+      } catch (error) {
+        quickTests.hidden = true;
+      }
+    }
+
     button.addEventListener('click', consultar);
     input.addEventListener('keydown', event => {
       if (event.key === 'Enter') consultar();
     });
 
+    cargarCedulas();
   </script>
 </body>
 </html>
