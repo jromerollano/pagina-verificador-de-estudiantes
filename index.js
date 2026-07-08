@@ -6,7 +6,7 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Nombre exacto de tu archivo
+// Configuración absoluta para leer el archivo p1
 const DATA_FILE = path.join(__dirname, 'p1.xlsx - A.csv'); 
 const HTML_FILE = path.join(__dirname, 'verificador_estudiantes.html');
 
@@ -19,7 +19,7 @@ app.get('/', (_req, res) => {
 
 function normalizarTexto(valor, fallback = 'N/A') {
   const texto = String(valor || '').trim();
-  return texto || fallback;
+  return texto === '' || texto === 'undefined' ? fallback : texto;
 }
 
 function capitalizar(valor) {
@@ -31,41 +31,34 @@ function capitalizar(valor) {
 function cargarEstudiantes() {
   const estudiantes = {};
   try {
-    // Leemos el archivo CSV de forma nativa asegurando la codificación utf-8
+    // Leemos el archivo asegurando codificación para caracteres especiales
     const fileContent = fs.readFileSync(DATA_FILE, 'utf-8');
     const lineas = fileContent.split(/\r?\n/);
 
-    // Empezamos desde la fila 1 para saltar los encabezados
+    // Iteramos desde la línea 1 para saltar el encabezado
     for (let i = 1; i < lineas.length; i++) {
-      const linea = lineas[i];
-      if (!linea.trim()) continue;
+      if (!lineas[i].trim()) continue;
       
-      // Separamos por las comas del CSV
-      const columnas = linea.split(',');
-      const cedula = normalizarTexto(columnas[1], ''); // Columna 1: Cedula
-
+      // Separamos por coma
+      const cols = lineas[i].split(',');
+      
+      // Columna 1 = Cedula
+      const cedula = normalizarTexto(cols[1], ''); 
       if (!cedula || !/^\d+$/.test(cedula)) continue;
 
-      let nivelIngles = normalizarTexto(columnas[23], 'N/A'); // Columna 23: Nivel de Inglés
-      if (nivelIngles === 'N/A' || nivelIngles === '') {
-        const niveles = ['A1', 'A2', 'B1', 'B2', 'C1'];
-        const charCodeSum = cedula.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
-        nivelIngles = niveles[charCodeSum % niveles.length];
-      }
-
       estudiantes[cedula] = {
-        cedula,
-        nombre: capitalizar(columnas[0]),        // Columna 0: Nombre
-        programa: capitalizar(columnas[2]),      // Columna 2: Programa 1
-        diplomado: capitalizar(columnas[16]),    // Columna 16: Diplomado 1
-        experto: capitalizar(columnas[19]),      // Columna 19: Curso
-        nivelIngles: nivelIngles,
-        etdh: 'Registrado',
+        cedula: cedula,
+        nombre: capitalizar(cols[0]),          // Columna 0: Nombre
+        programa: capitalizar(cols[2]),        // Columna 2: Programa
+        diplomado: capitalizar(cols[16] || 'Diplomado en TICS'), // Columna 16: Diplomado
+        etdh: 'Registrado',                    // Campo fijo
+        experto: capitalizar(cols[19] || 'N/A'), // Columna 19: Curso
+        nivelIngles: normalizarTexto(cols[23], 'A1'), // Columna 23: Inglés
         estado: 'Graduado'
       };
     }
   } catch (error) {
-    console.error('Error al leer la base de datos:', error.message);
+    console.error('Error al cargar p1.xlsx - A.csv:', error.message);
   }
   return estudiantes;
 }
@@ -79,22 +72,16 @@ app.get('/api/verificar/:cedula', (req, res) => {
     return res.json({
       encontrado: false,
       cedula,
-      mensaje: 'La cedula consultada no se encontro en el sistema academico.',
+      mensaje: 'La cedula consultada no se encontro en la base de datos p1.',
     });
   }
 
   res.json({
     encontrado: true,
-    cedula,
-    estudiante,
     ...estudiante,
   });
 });
 
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok' });
-});
-
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
+  console.log(`Servidor activo. Leyendo base de datos: ${DATA_FILE}`);
 });
