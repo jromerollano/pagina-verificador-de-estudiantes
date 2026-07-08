@@ -814,8 +814,8 @@
         cedula: data.cedula,
         nombre: data.nombre,
         programa: data.programa,
-        semestre: data.semestre,
-        jornada: data.jornada,
+        diplomado: data.diplomado,
+        experto: data.experto,
         estado: data.estado,
         nivelIngles: data.nivelIngles,
         etdh: data.etdh
@@ -887,13 +887,13 @@
 
       identity.append(kicker, title, subtitle);
       
-      // La etiqueta de estado (ej: Graduado) se mantiene en la esquina superior derecha
+      // La medalla arriba a la derecha (siempre 'Graduado')
       header.append(avatar, identity, crearBadgeEstado(estudiante.estado));
 
       const body = document.createElement('div');
       body.className = 'id-body';
 
-      // Lógica para procesar las Estrellas Doradas dinámicas según el nivel de Inglés
+      // Estrellas dinámicas para el Nivel de Inglés
       let nivelInglesTexto = estudiante.nivelIngles || 'N/A';
       if (nivelInglesTexto !== 'N/A') {
         const nivel = nivelInglesTexto.toUpperCase().trim();
@@ -908,16 +908,13 @@
         nivelInglesTexto = `${nivelInglesTexto} ${estrellas}`;
       }
       
-      // Consolidar el Técnico y el Semestre
-      const estudiosTecnicosTexto = `${estudiante.programa} - Semestre ${estudiante.semestre}`;
-      
-      // Insertamos los campos con la nueva distribución
+      // Insertamos los 5 campos en el body (limpio, sin repetidos)
       body.append(
         crearValor('Nivel de ingles', nivelInglesTexto),
-        crearValor('Diplomados', 'Diplomado en TICS'), // Campo fijo como solicitaste
+        crearValor('Diplomados', estudiante.diplomado),
         crearValor('Programas en ETDH', estudiante.etdh, { wide: true }),
-        crearValor('Estudios tecnicos', estudiosTecnicosTexto, { wide: true }),
-        crearValor('Expertos', estudiante.semestre, { wide: true })
+        crearValor('Estudios tecnicos', estudiante.programa, { wide: true }),
+        crearValor('Expertos', estudiante.experto, { wide: true })
       );
 
       const barcode = document.createElement('div');
