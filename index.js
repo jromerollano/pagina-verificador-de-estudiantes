@@ -1,12 +1,12 @@
 const express = require('express');
-const xlsx = require('xlsx');
+const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Apuntando a tu nueva base de datos
+// Nombre exacto de tu archivo
 const DATA_FILE = path.join(__dirname, 'p1.xlsx - A.csv'); 
 const HTML_FILE = path.join(__dirname, 'verificador_estudiantes.html');
 
@@ -31,18 +31,22 @@ function capitalizar(valor) {
 function cargarEstudiantes() {
   const estudiantes = {};
   try {
-    const workbook = xlsx.readFile(DATA_FILE);
-    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const filas = xlsx.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+    // Leemos el archivo CSV de forma nativa asegurando la codificación utf-8
+    const fileContent = fs.readFileSync(DATA_FILE, 'utf-8');
+    const lineas = fileContent.split(/\r?\n/);
 
     // Empezamos desde la fila 1 para saltar los encabezados
-    for (let i = 1; i < filas.length; i++) {
-      const fila = filas[i];
-      const cedula = normalizarTexto(fila[1], ''); // Columna 1: Cedula
+    for (let i = 1; i < lineas.length; i++) {
+      const linea = lineas[i];
+      if (!linea.trim()) continue;
+      
+      // Separamos por las comas del CSV
+      const columnas = linea.split(',');
+      const cedula = normalizarTexto(columnas[1], ''); // Columna 1: Cedula
 
       if (!cedula || !/^\d+$/.test(cedula)) continue;
 
-      let nivelIngles = normalizarTexto(fila[23], 'N/A'); // Columna 23: Nivel de Inglés
+      let nivelIngles = normalizarTexto(columnas[23], 'N/A'); // Columna 23: Nivel de Inglés
       if (nivelIngles === 'N/A' || nivelIngles === '') {
         const niveles = ['A1', 'A2', 'B1', 'B2', 'C1'];
         const charCodeSum = cedula.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
@@ -51,10 +55,10 @@ function cargarEstudiantes() {
 
       estudiantes[cedula] = {
         cedula,
-        nombre: capitalizar(fila[0]),        // Columna 0: Nombre
-        programa: capitalizar(fila[2]),      // Columna 2: Programa 1
-        diplomado: capitalizar(fila[16]),    // Columna 16: Diplomado 1
-        experto: capitalizar(fila[19]),      // Columna 19: Curso
+        nombre: capitalizar(columnas[0]),        // Columna 0: Nombre
+        programa: capitalizar(columnas[2]),      // Columna 2: Programa 1
+        diplomado: capitalizar(columnas[16]),    // Columna 16: Diplomado 1
+        experto: capitalizar(columnas[19]),      // Columna 19: Curso
         nivelIngles: nivelIngles,
         etdh: 'Registrado',
         estado: 'Graduado'
