@@ -7,7 +7,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // PON AQUÍ EL NOMBRE EXACTO DE TU ARCHIVO (ej: A.xlsx o A.csv)
-const DATA_FILE = path.join(__dirname, 'A.csv'); 
+const DATA_FILE = path.join(__dirname, 'p1.xlsx'); 
 const HTML_FILE = path.join(__dirname, 'verificador_estudiantes.html');
 
 app.use(cors());
