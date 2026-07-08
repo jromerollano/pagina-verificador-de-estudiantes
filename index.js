@@ -1,11 +1,12 @@
 const express = require('express');
-const xlsx = require('xlsx');
+const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const EXCEL_FILE = path.join(__dirname, 'prueba 1.xlsx');
+// Apuntamos a la nueva base de datos CSV
+const CSV_FILE = path.join(__dirname, 'A.csv');
 const HTML_FILE = path.join(__dirname, 'verificador_estudiantes.html');
 
 app.use(cors());
@@ -26,59 +27,46 @@ function capitalizar(valor) {
     .replace(/\p{L}+/gu, palabra => palabra.charAt(0).toLocaleUpperCase('es-CO') + palabra.slice(1));
 }
 
-function normalizarEstado(valor) {
-  const estado = normalizarTexto(valor, 'Graduado');
-  return estado.toLocaleLowerCase('es-CO') === 'activo' ? 'Graduado' : estado;
-}
-
-function crearCampos(estudiante) {
-  return [
-    { etiqueta: 'Nombre', valor: estudiante.nombre, destacado: true },
-    { etiqueta: 'Programa', valor: estudiante.programa },
-    { etiqueta: 'Semestre', valor: estudiante.semestre },
-    { etiqueta: 'Jornada', valor: estudiante.jornada },
-    { etiqueta: 'Estado', valor: estudiante.estado },
-    { etiqueta: 'Cedula', valor: estudiante.cedula },
-    { etiqueta: 'Nivel de ingles', valor: estudiante.nivelIngles },
-    { etiqueta: 'ETDH de Conocimientos Academicos', valor: estudiante.etdh },
-  ];
-}
-
 function cargarEstudiantes() {
-  const workbook = xlsx.readFile(EXCEL_FILE);
-  const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-  const filas = xlsx.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
   const estudiantes = {};
+  try {
+    // Leemos el CSV (latin1 para no dañar las tildes y ñ del documento original)
+    const fileContent = fs.readFileSync(CSV_FILE, 'latin1');
+    const lineas = fileContent.split(/\r?\n/);
+    
+    // Ignoramos la primera fila (los encabezados)
+    for (let i = 1; i < lineas.length; i++) {
+      const linea = lineas[i];
+      if (!linea.trim()) continue;
+      
+      // Separamos por punto y coma (formato del CSV)
+      const columnas = linea.split(';');
+      
+      const cedula = normalizarTexto(columnas[1], ''); // Columna 1: Documento
+      if (!cedula || !/^\d+$/.test(cedula)) continue;
 
-  const nivelesIngles = ['A1', 'A2', 'B1', 'B2', 'C1'];
+      let nivelIngles = normalizarTexto(columnas[23], 'N/A'); // Columna 23: Nivel de Inglés Certificado
+      if (nivelIngles === 'N/A' || nivelIngles === '') {
+        // Asignación de reserva en caso de que esté vacío
+        const niveles = ['A1', 'A2', 'B1', 'B2', 'C1'];
+        const charCodeSum = cedula.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+        nivelIngles = niveles[charCodeSum % niveles.length];
+      }
 
-  for (const fila of filas) {
-    const cedula = normalizarTexto(fila[1], '');
-
-    if (!cedula || !/^\d+$/.test(cedula)) continue;
-
-    // Asignación de nivel de inglés determinista (basado en la cédula) para la base de prueba
-    let nivelIngles = normalizarTexto(fila[6], '');
-    if (!nivelIngles || nivelIngles === 'N/A') {
-      const charCodeSum = cedula.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
-      nivelIngles = nivelesIngles[charCodeSum % nivelesIngles.length];
+      estudiantes[cedula] = {
+        cedula,
+        nombre: capitalizar(columnas[0]),        // Columna 0: Nombre
+        programa: capitalizar(columnas[2]),      // Columna 2: Programa 1 (Estudios técnicos)
+        diplomado: capitalizar(columnas[16]),    // Columna 16: Diplomado 1
+        experto: capitalizar(columnas[19]),      // Columna 19: Curso (Expertos)
+        nivelIngles: nivelIngles,
+        etdh: 'Registrado',                      // Fijo
+        estado: 'Graduado'                       // Fijo para la medalla
+      };
     }
-
-    // Campo ETDH por defecto si no existe en el Excel
-    let etdh = normalizarTexto(fila[7], 'Registrado');
-
-    estudiantes[cedula] = {
-      cedula,
-      nombre: capitalizar(fila[0]),
-      programa: capitalizar(fila[2]),
-      semestre: normalizarTexto(fila[3]),
-      jornada: normalizarTexto(fila[4]),
-      estado: normalizarEstado(fila[5]),
-      nivelIngles: nivelIngles,
-      etdh: etdh
-    };
+  } catch (error) {
+    console.error('Error procesando CSV:', error.message);
   }
-
   return estudiantes;
 }
 
@@ -99,7 +87,6 @@ app.get('/api/verificar/:cedula', (req, res) => {
     encontrado: true,
     cedula,
     estudiante,
-    campos: crearCampos(estudiante),
     ...estudiante,
   });
 });
