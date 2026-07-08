@@ -6,8 +6,8 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// PON AQUÍ EL NOMBRE EXACTO DE TU ARCHIVO (ej: A.xlsx o A.csv)
-const DATA_FILE = path.join(__dirname, 'A.csv'); 
+// Apuntando a tu nueva base de datos
+const DATA_FILE = path.join(__dirname, 'p1.xlsx - A.csv'); 
 const HTML_FILE = path.join(__dirname, 'verificador_estudiantes.html');
 
 app.use(cors());
@@ -31,7 +31,6 @@ function capitalizar(valor) {
 function cargarEstudiantes() {
   const estudiantes = {};
   try {
-    // La librería xlsx lee de forma segura tanto Excel como CSV
     const workbook = xlsx.readFile(DATA_FILE);
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     const filas = xlsx.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
@@ -39,7 +38,7 @@ function cargarEstudiantes() {
     // Empezamos desde la fila 1 para saltar los encabezados
     for (let i = 1; i < filas.length; i++) {
       const fila = filas[i];
-      const cedula = normalizarTexto(fila[1], ''); // Columna 1: Documento
+      const cedula = normalizarTexto(fila[1], ''); // Columna 1: Cedula
 
       if (!cedula || !/^\d+$/.test(cedula)) continue;
 
@@ -86,11 +85,6 @@ app.get('/api/verificar/:cedula', (req, res) => {
     estudiante,
     ...estudiante,
   });
-});
-
-app.get('/api/cedulas', (_req, res) => {
-  const estudiantes = cargarEstudiantes();
-  res.json(Object.keys(estudiantes));
 });
 
 app.get('/health', (_req, res) => {
