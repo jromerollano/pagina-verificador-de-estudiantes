@@ -43,11 +43,11 @@ function cargarEstudiantes() {
 
       if (!cedula || !/^\d+$/.test(cedula)) continue;
 
-      let nivelIngles = normalizarTexto(fila[23], 'N/A'); 
-      if (nivelIngles === 'N/A' || nivelIngles === '') {
-        const niveles = ['A1', 'A2', 'B1', 'B2', 'C1'];
-        const charCodeSum = cedula.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
-        nivelIngles = niveles[charCodeSum % niveles.length];
+     // Se lee el valor de la columna 23. Si viene vacío, se define como 'No aplica' directamente.
+      let nivelIngles = normalizarTexto(fila[23], ''); 
+      
+      if (nivelIngles === '' || nivelIngles.toUpperCase() === 'N/A') {
+        nivelIngles = 'No aplica';
       }
 
       // Lógica mejorada para el diplomado
