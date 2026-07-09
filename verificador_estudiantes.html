@@ -890,9 +890,12 @@
       const body = document.createElement('div');
       body.className = 'id-body';
 
+      
       // Estrellas dinámicas para el Nivel de Inglés
-      let nivelInglesTexto = estudiante.nivelIngles || 'N/A';
-      if (nivelInglesTexto !== 'N/A') {
+      let nivelInglesTexto = estudiante.nivelIngles || 'No aplica';
+      
+      // Solo mostramos estrellas si no es 'No aplica'
+      if (nivelInglesTexto !== 'No aplica' && nivelInglesTexto !== 'N/A') {
         const nivel = nivelInglesTexto.toUpperCase().trim();
         let estrellas = '';
         if (nivel.includes('A1')) estrellas = '⭐';
